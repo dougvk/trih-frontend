@@ -29,45 +29,51 @@ export default function EpisodeCard({ episode, onClick }: EpisodeCardProps) {
           {/* Tags */}
           <div className="space-y-2 mb-4">
             {/* Format Tag */}
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 bg-[#ffc480] border-2 border-gray-900 rounded-full text-sm font-bold text-gray-900">
+            <div className="flex justify-center">
+              <div className="px-3 py-1.5 bg-[#ffc480] border-2 border-gray-900 rounded-full text-sm font-bold text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
                 {episode.tags.find(tag => FORMAT_TAGS.includes(tag as FormatTag))}
-              </span>
+              </div>
             </div>
             
             {/* Theme Tags */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {episode.tags
                 .filter(tag => THEME_TAGS.includes(tag as ThemeTag))
                 .map(tag => (
-                  <span key={tag} className="px-3 py-1 bg-[#e8e8e8] border-2 border-gray-900 rounded-full text-sm text-gray-900">
+                  <div key={tag} className="px-3 py-1.5 bg-[#e8e8e8] border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
                     {tag}
-                  </span>
+                  </div>
                 ))}
             </div>
             
             {/* Track Tags */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {episode.tags
                 .filter(tag => TRACK_TAGS.includes(tag as TrackTag))
                 .map(tag => (
-                  <span key={tag} className="px-3 py-1 bg-white border-2 border-gray-900 rounded-full text-sm text-gray-900">
+                  <div key={tag} className="px-3 py-1.5 bg-white border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
                     {tag}
-                  </span>
+                  </div>
                 ))}
             </div>
           </div>
           
           {/* Listen Button */}
-          <a
-            href={episode.podcastLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-2 bg-[#ffc480] border-2 border-gray-900 rounded-lg font-bold text-gray-900 hover:-translate-y-1 transition-transform"
-            onClick={(e) => e.stopPropagation()}
-          >
-            Listen
-          </a>
+          {episode.audioUrl ? (
+            <a
+              href={episode.audioUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-6 py-2 bg-[#ffc480] border-2 border-gray-900 rounded-lg font-bold text-gray-900 hover:-translate-y-1 transition-transform"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Listen
+            </a>
+          ) : (
+            <span className="inline-block px-6 py-2 bg-gray-300 border-2 border-gray-900 rounded-lg font-bold text-gray-600 cursor-not-allowed">
+              No Audio Available
+            </span>
+          )}
           
           <div className="flex-grow"></div>
         </div>

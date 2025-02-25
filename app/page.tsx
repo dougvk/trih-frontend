@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { allEpisodes, type Episode } from './lib/db';
 import { FORMAT_TAGS, THEME_TAGS, TRACK_TAGS, type FormatTag, type ThemeTag, type TrackTag } from './lib/constants';
 import Header from './components/Header';
@@ -17,7 +17,23 @@ export default function Home() {
   const [selectedThemes, setSelectedThemes] = useState<ThemeTag[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<TrackTag[]>([]);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Set sidebar open state based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 768); // 768px is the md breakpoint in Tailwind
+    };
+    
+    // Set initial state
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Filter episodes based on search and selected tags
   const filteredEpisodes = allEpisodes.filter(episode => {
@@ -92,10 +108,11 @@ export default function Home() {
         selectedTracks={selectedTracks}
         onThemeChange={handleThemeChange}
         onTrackChange={handleTrackChange}
+        onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className={`transition-all duration-300 ${isSidebarOpen ? 'pl-[300px]' : 'pl-0'}`}>
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <main className="transition-all duration-300 pl-0">
+        <div className={`max-w-7xl mx-auto px-4 py-8 ${isSidebarOpen ? 'md:ml-[300px]' : ''}`}>
           <div className="flex items-center gap-4 mb-8">
             <SidebarToggle
               isOpen={isSidebarOpen}
