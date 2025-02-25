@@ -8,6 +8,8 @@ import SearchBar from './components/SearchBar';
 import FilterButtons from './components/FilterButtons';
 import EpisodeCard from './components/EpisodeCard';
 import EpisodeModal from './components/EpisodeModal';
+import Sidebar from './components/Sidebar';
+import SidebarToggle from './components/SidebarToggle';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +17,7 @@ export default function Home() {
   const [selectedThemes, setSelectedThemes] = useState<ThemeTag[]>([]);
   const [selectedTracks, setSelectedTracks] = useState<TrackTag[]>([]);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Filter episodes based on search and selected tags
   const filteredEpisodes = allEpisodes.filter(episode => {
@@ -83,26 +86,43 @@ export default function Home() {
     <div className="min-h-screen bg-[#FFFDF8]">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <SearchBar onSearch={setSearchQuery} />
-        
-        <FilterButtons
-          selectedFormat={selectedFormat}
-          selectedThemes={selectedThemes}
-          selectedTracks={selectedTracks}
-          onFormatChange={handleFormatChange}
-          onThemeChange={handleThemeChange}
-          onTrackChange={handleTrackChange}
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-          {filteredEpisodes.map(episode => (
-            <EpisodeCard
-              key={episode.id}
-              episode={episode}
-              onClick={() => setSelectedEpisode(episode)}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        selectedThemes={selectedThemes}
+        selectedTracks={selectedTracks}
+        onThemeChange={handleThemeChange}
+        onTrackChange={handleTrackChange}
+      />
+      
+      <main className={`transition-all duration-300 ${isSidebarOpen ? 'pl-[300px]' : 'pl-0'}`}>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center gap-4 mb-8">
+            <SidebarToggle
+              isOpen={isSidebarOpen}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             />
-          ))}
+            <div className="flex-grow">
+              <SearchBar onSearch={setSearchQuery} />
+            </div>
+          </div>
+          
+          <div className="mb-8">
+            <FilterButtons
+              selectedFormat={selectedFormat}
+              onFormatChange={handleFormatChange}
+              showOnlyFormat={true}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredEpisodes.map(episode => (
+              <EpisodeCard
+                key={episode.id}
+                episode={episode}
+                onClick={() => setSelectedEpisode(episode)}
+              />
+            ))}
+          </div>
         </div>
         
         {selectedEpisode && (
