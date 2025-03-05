@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { allEpisodes, type Episode } from './lib/db';
-import { FORMAT_TAGS, THEME_TAGS, TRACK_TAGS, type FormatTag, type ThemeTag, type TrackTag } from './lib/constants';
+import { type FormatTag, type ThemeTag, type TrackTag } from './lib/constants';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import FilterButtons from './components/FilterButtons';
@@ -50,10 +50,10 @@ export default function Home() {
     // Format filter
     if (selectedFormat) {
       if (selectedFormat === 'Bonus Episodes') {
-        if (!episode.tags.includes('The RIHC Bonus Track')) return false;
+        if (!episode.trackTags.includes('The RIHC Bonus Track')) return false;
       } else if (selectedFormat === 'Series Episodes') {
-        if (!episode.tags.includes(selectedFormat) || episode.tags.includes('The RIHC Bonus Track')) return false;
-      } else if (!episode.tags.includes(selectedFormat)) {
+        if (!episode.formatTags.includes(selectedFormat) || episode.trackTags.includes('The RIHC Bonus Track')) return false;
+      } else if (!episode.formatTags.includes(selectedFormat)) {
         return false;
       }
     }
@@ -61,7 +61,7 @@ export default function Home() {
     // Theme filter
     if (selectedThemes.length > 0) {
       const hasAllSelectedThemes = selectedThemes.every(theme => 
-        episode.tags.includes(theme)
+        episode.themeTags.includes(theme)
       );
       if (!hasAllSelectedThemes) return false;
     }
@@ -69,7 +69,7 @@ export default function Home() {
     // Track filter
     if (selectedTracks.length > 0) {
       const hasAllSelectedTracks = selectedTracks.every(track => 
-        episode.tags.includes(track)
+        episode.trackTags.includes(track)
       );
       if (!hasAllSelectedTracks) return false;
     }

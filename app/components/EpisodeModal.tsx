@@ -1,5 +1,4 @@
 import { Episode } from '../lib/db';
-import { FORMAT_TAGS, THEME_TAGS, TRACK_TAGS, type FormatTag, type ThemeTag, type TrackTag } from '../lib/constants';
 
 interface EpisodeModalProps {
   episode: Episode;
@@ -35,8 +34,8 @@ export default function EpisodeModal({ episode, onClose }: EpisodeModalProps) {
             <div>
               <h3 className="font-bold mb-2 text-gray-900">Format</h3>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-[#ffc480] border-2 border-gray-900 rounded-full text-sm font-bold text-gray-900">
-                  {episode.tags.find(tag => FORMAT_TAGS.includes(tag as FormatTag))}
+                <span className="px-3 py-1.5 bg-[#ffc480] border-2 border-gray-900 rounded-full text-sm font-bold text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
+                  {episode.formatTags[0]}
                 </span>
               </div>
             </div>
@@ -45,13 +44,11 @@ export default function EpisodeModal({ episode, onClose }: EpisodeModalProps) {
             <div>
               <h3 className="font-bold mb-2 text-gray-900">Themes</h3>
               <div className="flex flex-wrap gap-2">
-                {episode.tags
-                  .filter(tag => THEME_TAGS.includes(tag as ThemeTag))
-                  .map(tag => (
-                    <span key={tag} className="px-3 py-1 bg-[#e8e8e8] border-2 border-gray-900 rounded-full text-sm text-gray-900">
-                      {tag}
-                    </span>
-                  ))}
+                {episode.themeTags.map(tag => (
+                  <span key={tag} className="px-3 py-1.5 bg-[#e8e8e8] border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
             
@@ -59,26 +56,31 @@ export default function EpisodeModal({ episode, onClose }: EpisodeModalProps) {
             <div>
               <h3 className="font-bold mb-2 text-gray-900">Tracks</h3>
               <div className="flex flex-wrap gap-2">
-                {episode.tags
-                  .filter(tag => TRACK_TAGS.includes(tag as TrackTag))
-                  .map(tag => (
-                    <span key={tag} className="px-3 py-1 bg-white border-2 border-gray-900 rounded-full text-sm text-gray-900">
-                      {tag}
-                    </span>
-                  ))}
+                {episode.trackTags.map(tag => (
+                  <span key={tag} className="px-3 py-1.5 bg-white border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
           
           {/* Listen Button */}
-          <a
-            href={episode.podcastLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-3 bg-[#ffc480] border-2 border-gray-900 rounded-lg font-bold text-gray-900 hover:-translate-y-1 transition-transform"
-          >
-            Listen to Episode
-          </a>
+          {episode.audioUrl ? (
+            <a
+              href={episode.audioUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-6 py-2 bg-[#ffc480] border-2 border-gray-900 rounded-lg font-bold text-gray-900 hover:-translate-y-1 transition-transform"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Listen
+            </a>
+          ) : (
+            <span className="inline-block px-6 py-2 bg-gray-300 border-2 border-gray-900 rounded-lg font-bold text-gray-600 cursor-not-allowed">
+              No Audio Available
+            </span>
+          )}
         </div>
       </div>
     </div>

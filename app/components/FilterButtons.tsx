@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FORMAT_TAGS, THEME_TAGS, TRACK_TAGS, type FormatTag, type ThemeTag, type TrackTag } from '../lib/constants';
+import { FORMAT_TAGS, type FormatTag, type ThemeTag, type TrackTag } from '../lib/constants';
+import { allThemeTags, allTrackTags } from '../lib/db';
 
 interface FilterButtonsProps {
   selectedFormat: FormatTag | null;
@@ -92,7 +93,7 @@ export default function FilterButtons({
             {/* Selected themes when collapsed */}
             {!isThemesOpen && selectedThemes.length > 0 && (
               <div className="flex flex-wrap gap-4">
-                {THEME_TAGS.filter(theme => selectedThemes.includes(theme)).map(theme => (
+                {allThemeTags.filter(theme => selectedThemes.includes(theme)).map(theme => (
                   <FilterButton
                     key={theme}
                     onClick={() => onThemeChange(theme)}
@@ -107,7 +108,7 @@ export default function FilterButtons({
             {/* All themes when expanded */}
             {isThemesOpen && (
               <div className="flex flex-wrap gap-4">
-                {THEME_TAGS.map(theme => (
+                {allThemeTags.map(theme => (
                   <FilterButton
                     key={theme}
                     onClick={() => onThemeChange(theme)}
@@ -144,7 +145,7 @@ export default function FilterButtons({
             {/* Selected tracks when collapsed */}
             {!isTracksOpen && selectedTracks.length > 0 && (
               <div className="flex flex-wrap gap-4">
-                {TRACK_TAGS.filter(track => selectedTracks.includes(track)).map(track => (
+                {allTrackTags.filter(track => selectedTracks.includes(track)).map(track => (
                   <FilterButton
                     key={track}
                     onClick={() => onTrackChange(track)}
@@ -159,7 +160,7 @@ export default function FilterButtons({
             {/* All tracks when expanded */}
             {isTracksOpen && (
               <div className="flex flex-wrap gap-4">
-                {TRACK_TAGS.map(track => (
+                {allTrackTags.map(track => (
                   <FilterButton
                     key={track}
                     onClick={() => onTrackChange(track)}

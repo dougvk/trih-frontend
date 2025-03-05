@@ -1,5 +1,4 @@
 import { Episode } from '../lib/db';
-import { FORMAT_TAGS, THEME_TAGS, TRACK_TAGS, type FormatTag, type ThemeTag, type TrackTag } from '../lib/constants';
 
 interface EpisodeCardProps {
   episode: Episode;
@@ -29,32 +28,28 @@ export default function EpisodeCard({ episode, onClick }: EpisodeCardProps) {
           {/* Tags */}
           <div className="space-y-2 mb-4">
             {/* Format Tag */}
-            <div className="flex justify-center">
-              <div className="px-3 py-1.5 bg-[#ffc480] border-2 border-gray-900 rounded-full text-sm font-bold text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
-                {episode.tags.find(tag => FORMAT_TAGS.includes(tag as FormatTag))}
-              </div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <span className="px-3 py-1.5 bg-[#ffc480] border-2 border-gray-900 rounded-full text-sm font-bold text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
+                {episode.formatTags[0]}
+              </span>
             </div>
             
             {/* Theme Tags */}
             <div className="flex flex-wrap gap-2 justify-center">
-              {episode.tags
-                .filter(tag => THEME_TAGS.includes(tag as ThemeTag))
-                .map(tag => (
-                  <div key={tag} className="px-3 py-1.5 bg-[#e8e8e8] border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
-                    {tag}
-                  </div>
-                ))}
+              {episode.themeTags.map(tag => (
+                <span key={tag} className="px-3 py-1.5 bg-[#e8e8e8] border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
+                  {tag}
+                </span>
+              ))}
             </div>
             
             {/* Track Tags */}
             <div className="flex flex-wrap gap-2 justify-center">
-              {episode.tags
-                .filter(tag => TRACK_TAGS.includes(tag as TrackTag))
-                .map(tag => (
-                  <div key={tag} className="px-3 py-1.5 bg-white border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
-                    {tag}
-                  </div>
-                ))}
+              {episode.trackTags.map(tag => (
+                <span key={tag} className="px-3 py-1.5 bg-white border-2 border-gray-900 rounded-full text-sm text-gray-900 text-center min-w-[180px] md:min-w-[220px] inline-block">
+                  {tag}
+                </span>
+              ))}
             </div>
           </div>
           
