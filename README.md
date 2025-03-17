@@ -6,6 +6,7 @@ A standalone, single-page web application that lets users explore podcast episod
 
 - **Filtering System**: Filter episodes by format, theme, and track tags
 - **Search Functionality**: Search episodes by keywords in title or description
+- **Q&A System**: Ask questions about podcast content and get AI-generated answers based on relevant transcript excerpts
 - **Responsive Design**: Fully responsive on desktop, tablet, and mobile devices
 - **Episode Details**: View full episode details in a modal
 - **Audio Playback**: Listen to episodes directly from the application
@@ -15,6 +16,8 @@ A standalone, single-page web application that lets users explore podcast episod
 - **Frontend Framework**: ReactJS with NextJS
 - **Programming Languages**: TypeScript
 - **Styling**: TailwindCSS
+- **AI Integration**: OpenAI API for question answering
+- **Vector Search**: External API for semantic search of podcast transcripts
 - **Deployment**: Static site generation for deployment on platforms like Cloudflare Pages
 
 ## Getting Started
@@ -142,6 +145,21 @@ The application uses TailwindCSS for styling. To customize the appearance:
 ### Layout
 
 The main layout is defined in `app/page.tsx`. The sidebar and filtering components can be customized in their respective files in the `app/components` directory.
+
+### Q&A Feature
+
+The Q&A feature allows users to ask questions about podcast content and get AI-generated answers. To use this feature:
+
+1. Navigate to the Q&A page by clicking the "Q&A" link in the header.
+2. Enter your OpenAI API key (stored securely in session storage only).
+3. Type your question and click "Search" to get an answer based on relevant podcast transcript excerpts.
+
+The Q&A system works by:
+1. Querying the vector search API at `104.248.37.154:8080` to find relevant transcript chunks
+2. Sending those chunks along with the user's question to OpenAI's GPT-4o model
+3. Displaying the AI-generated answer to the user
+
+To modify the Q&A functionality, edit the files in the `app/qa` directory.
 
 ## Troubleshooting
 

@@ -1,0 +1,404 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Header from '../components/Header';
+import { OpenAI } from 'openai';
+import ReactMarkdown from 'react-markdown';
+import EpisodeCard from '../components/EpisodeCard';
+import EpisodeModal from '../components/EpisodeModal';
+import { allEpisodes, type Episode } from '../lib/db';
+
+// Define types for the API response
+interface SearchResult {
+  podcast_title: string;
+  chunk_id: string;
+  text: string;
+  score: number;
+}
+
+interface ApiResponse {
+  query: string;
+  results: SearchResult[];
+}
+
+export default function QAPage() {
+  const [query, setQuery] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [isApiKeySet, setIsApiKeySet] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [answer, setAnswer] = useState('');
+  const [error, setError] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [relevantEpisodes, setRelevantEpisodes] = useState<Episode[]>([]);
+  const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
+
+  const saveApiKey = () => {
+    if (apiKey.trim()) {
+      // Store API key in session storage (not localStorage) for better security
+      // It will be cleared when the browser is closed
+      sessionStorage.setItem('openai_api_key', apiKey.trim());
+      setIsApiKeySet(true);
+      setShowApiKeyInput(false);
+    }
+  };
+
+  const clearApiKey = () => {
+    sessionStorage.removeItem('openai_api_key');
+    setApiKey('');
+    setIsApiKeySet(false);
+  };
+
+  // Check if API key exists in session storage on component mount
+  useEffect(() => {
+    const storedApiKey = sessionStorage.getItem('openai_api_key');
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+      setIsApiKeySet(true);
+    }
+  }, []);
+
+  // Function to find matching episodes based on fuzzy title matching
+  const findMatchingEpisodes = (searchResults: SearchResult[]): Episode[] => {
+    // Extract unique podcast titles from search results
+    const podcastTitles = [...new Set(searchResults.map(result => result.podcast_title))];
+    
+    console.log("API Podcast Titles:", podcastTitles);
+    console.log("Total episodes in database:", allEpisodes.length);
+    
+    // Find matching episodes using fuzzy matching
+    const matchedEpisodes: Episode[] = [];
+    
+    podcastTitles.forEach(apiTitle => {
+      console.log("Processing API title:", apiTitle);
+      
+      // Clean up the API title (remove numbers, "copy", etc.)
+      const cleanedApiTitle = apiTitle
+        .replace(/^\d+_/, '') // Remove leading numbers and underscore
+        .replace(/ copy$/, '') // Remove trailing "copy"
+        .trim();
+      
+      console.log("Cleaned API title:", cleanedApiTitle);
+      
+      // Check if this is a "Part X" title and extract the main title and part number
+      const partMatch = cleanedApiTitle.match(/(.*?)(Part\s+\d+)?$/i);
+      const mainTitlePart = partMatch ? partMatch[1].trim() : cleanedApiTitle;
+      const partNumber = partMatch && partMatch[2] ? partMatch[2].trim() : null;
+      
+      console.log("Main title part:", mainTitlePart);
+      console.log("Part number:", partNumber);
+      
+      // Find the best matching episode
+      let bestMatch: Episode | undefined;
+      let highestScore = 0;
+      
+      allEpisodes.forEach(episode => {
+        // Calculate a similarity score
+        let score = 0;
+        
+        // Check for exact title match (case insensitive)
+        if (episode.title.toLowerCase() === cleanedApiTitle.toLowerCase()) {
+          score += 50;
+        }
+        
+        // Check if episode title contains the main title part
+        if (episode.title.toLowerCase().includes(mainTitlePart.toLowerCase())) {
+          score += 20;
+        }
+        
+        // Check if the main title part contains the episode title
+        if (mainTitlePart.toLowerCase().includes(episode.title.toLowerCase())) {
+          score += 10;
+        }
+        
+        // Check for part number match if both have part numbers
+        if (partNumber && episode.title.toLowerCase().includes(partNumber.toLowerCase())) {
+          score += 15;
+        }
+        
+        // Check for word-by-word matches (for longer words only)
+        const apiWords = mainTitlePart.toLowerCase().split(/\s+/);
+        const episodeWords = episode.title.toLowerCase().split(/\s+/);
+        
+        apiWords.forEach(word => {
+          if (word.length > 3 && episodeWords.includes(word)) {
+            score += 3;
+          }
+        });
+        
+        // Special case for Charlemagne episodes
+        if (mainTitlePart.toLowerCase().includes('charlemagne') && 
+            episode.title.toLowerCase().includes('charlemagne')) {
+          score += 15;
+          
+          // Check for specific subtitles
+          const charlemagneSubtitles = [
+            "Emperor of the West",
+            "Pagan Hunter",
+            "Return of the Kings"
+          ];
+          
+          charlemagneSubtitles.forEach(subtitle => {
+            if (mainTitlePart.toLowerCase().includes(subtitle.toLowerCase()) && 
+                episode.title.toLowerCase().includes(subtitle.toLowerCase())) {
+              score += 20;
+            }
+          });
+        }
+        
+        // Log high-scoring potential matches for debugging
+        if (score > 10) {
+          console.log(`Potential match: "${episode.title}" with score ${score}`);
+        }
+        
+        if (score > highestScore) {
+          highestScore = score;
+          bestMatch = episode;
+        }
+      });
+      
+      // Use a lower threshold to ensure we find matches
+      if (bestMatch && highestScore > 10) {
+        console.log("Found match:", bestMatch.title, "with score:", highestScore);
+        if (!matchedEpisodes.some(e => e.id === bestMatch!.id)) {
+          matchedEpisodes.push(bestMatch);
+        }
+      } else {
+        console.log("No match found with sufficient score");
+      }
+    });
+    
+    console.log("Total matched episodes:", matchedEpisodes.length);
+    return matchedEpisodes;
+  };
+
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+    
+    // Check if API key is set
+    const storedApiKey = sessionStorage.getItem('openai_api_key');
+    if (!storedApiKey) {
+      setError('Please set your OpenAI API key first.');
+      setShowApiKeyInput(true);
+      return;
+    }
+    
+    setIsLoading(true);
+    setAnswer('');
+    setError('');
+    setRelevantEpisodes([]);
+    
+    try {
+      // Step 1: Get relevant context from the vector search API
+      const apiUrl = `https://trih-vector-service.dougsprivateapi.work/query?search=${encodeURIComponent(query)}&top_k=20`;
+      const apiResponse = await fetch(apiUrl);
+      
+      if (!apiResponse.ok) {
+        throw new Error(`API error: ${apiResponse.status}`);
+      }
+      
+      const apiData: ApiResponse = await apiResponse.json();
+      
+      // Step 2: Find matching episodes
+      const matchedEpisodes = findMatchingEpisodes(apiData.results);
+      setRelevantEpisodes(matchedEpisodes);
+      
+      // Step 3: Combine all relevant text chunks
+      const contextText = apiData.results
+        .map((result: SearchResult) => `From podcast "${result.podcast_title}":\n${result.text}`)
+        .join('\n\n');
+      
+      // Step 4: Use OpenAI to generate an answer based on the context
+      const openai = new OpenAI({
+        apiKey: storedApiKey,
+        dangerouslyAllowBrowser: true // Note: In production, you should use a server-side API route
+      });
+      
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant that answers questions based on podcast transcripts. Use only the provided context to answer the question. If the context doesn't contain relevant information, say that you don't have enough information. Format your answers using markdown for better readability."
+          },
+          {
+            role: "user",
+            content: `Based on the following podcast transcript excerpts, please answer this question: "${query}"\n\nContext:\n${contextText}`
+          }
+        ],
+        temperature: 0.7,
+      });
+      
+      setAnswer(completion.choices[0].message.content || "Sorry, I couldn't generate an answer.");
+    } catch (err) {
+      console.error('Error:', err);
+      setError(`An error occurred: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FFFDF8]">
+      <Header />
+      
+      <main>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Ask a Question</h2>
+          
+          {/* API Key Management */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">OpenAI API Key</h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  {isApiKeySet 
+                    ? "API key is set (stored in session storage only)" 
+                    : "You need to provide your OpenAI API key to use this feature"}
+                </p>
+              </div>
+              <div>
+                {isApiKeySet ? (
+                  <button
+                    onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                    className="text-sm text-blue-600 hover:text-blue-800 mr-4"
+                  >
+                    {showApiKeyInput ? 'Hide' : 'Change Key'}
+                  </button>
+                ) : null}
+                {isApiKeySet ? (
+                  <button
+                    onClick={clearApiKey}
+                    className="text-sm text-red-600 hover:text-red-800"
+                  >
+                    Clear Key
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowApiKeyInput(true)}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    Set API Key
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {showApiKeyInput && (
+              <div className="mt-2">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#0f172a] rounded-xl translate-y-2 translate-x-2"></div>
+                  <div className="relative z-10 flex rounded-xl overflow-hidden border-3 border-[#0f172a]">
+                    <input
+                      type="password"
+                      placeholder="Enter your OpenAI API key"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      className="flex-grow px-4 py-2 bg-white text-gray-900 focus:outline-none"
+                    />
+                    <button
+                      onClick={saveApiKey}
+                      disabled={!apiKey.trim()}
+                      className="px-4 py-2 bg-[#374151] text-white font-medium focus:outline-none disabled:opacity-50 rounded-r-xl"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-gray-600">
+                  Your API key is stored in session storage and will be cleared when you close your browser.
+                </p>
+              </div>
+            )}
+          </div>
+          
+          {/* Search Input */}
+          <div className="w-full mb-8">
+            <div className="relative">
+              {/* Background layer */}
+              <div className="absolute inset-0 bg-[#0f172a] rounded-xl translate-y-2 translate-x-2"></div>
+              
+              {/* Foreground input */}
+              <input
+                type="text"
+                placeholder="Ask a question about the podcasts..."
+                className="relative z-10 w-full px-6 py-3 bg-white border-3 border-[#0f172a] rounded-xl text-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ffc480] focus:border-[#0f172a] transition-transform hover:-translate-y-1 hover:-translate-x-1"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#0f172a] rounded-lg translate-y-2 translate-x-2"></div>
+              <button
+                onClick={handleSearch}
+                disabled={isLoading || !query.trim()}
+                className={`relative z-10 px-6 py-2 bg-gray-500 text-[#0f172a] font-medium rounded-lg border-2 border-[#0f172a] ${
+                  isLoading || !query.trim() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isLoading ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+          </div>
+          
+          {error && (
+            <div className="bg-red-100 border-3 border-red-500 rounded-xl p-4 mb-8">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+          
+          {answer && (
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#0f172a] rounded-xl translate-y-2 translate-x-2"></div>
+              <div className="relative z-10 bg-white border-3 border-[#0f172a] rounded-xl p-6 mb-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Answer</h3>
+                <div className="prose max-w-none text-gray-900">
+                  <ReactMarkdown
+                    components={{
+                      p: ({...props}) => <p className="mb-4 text-gray-900" {...props} />,
+                      h1: ({...props}) => <h1 className="text-2xl font-bold mt-6 mb-4 text-gray-900" {...props} />,
+                      h2: ({...props}) => <h2 className="text-xl font-bold mt-5 mb-3 text-gray-900" {...props} />,
+                      h3: ({...props}) => <h3 className="text-lg font-bold mt-4 mb-2 text-gray-900" {...props} />,
+                      ul: ({...props}) => <ul className="list-disc pl-5 mb-4 text-gray-900" {...props} />,
+                      ol: ({...props}) => <ol className="list-decimal pl-5 mb-4 text-gray-900" {...props} />,
+                      li: ({...props}) => <li className="mb-1 text-gray-900" {...props} />,
+                      blockquote: ({...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-900" {...props} />,
+                    }}
+                  >
+                    {answer}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Relevant Episodes Section */}
+          {relevantEpisodes.length > 0 && (
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">Related Episodes</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {relevantEpisodes.map(episode => (
+                  <EpisodeCard
+                    key={episode.id}
+                    episode={episode}
+                    onClick={() => setSelectedEpisode(episode)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {selectedEpisode && (
+            <EpisodeModal
+              episode={selectedEpisode}
+              onClose={() => setSelectedEpisode(null)}
+            />
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
