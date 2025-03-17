@@ -37,11 +37,11 @@ export default function FilterButtons({
       onClick={onClick}
       className="relative"
     >
-      <div className="absolute inset-0 bg-gray-900 rounded-lg translate-y-1 translate-x-1" />
-      <div className={`relative z-10 px-4 py-2 rounded-lg border-2 border-gray-900 font-medium transition-all duration-200 ${
+      <div className="absolute inset-0 bg-gray-900 dark:bg-gray-700 rounded-lg translate-y-1 translate-x-1" />
+      <div className={`relative z-10 px-4 py-2 rounded-lg border-2 border-gray-900 dark:border-gray-700 font-medium transition-all duration-200 ${
         isSelected
-          ? 'bg-gray-900 text-white translate-y-1 translate-x-1'
-          : 'bg-[#fff4da] text-gray-900 hover:-translate-y-0.5 hover:-translate-x-0.5'
+          ? 'bg-gray-900 dark:bg-gray-700 text-white translate-y-1 translate-x-1'
+          : 'bg-[#fff4da] dark:bg-gray-800 text-gray-900 dark:text-white hover:-translate-y-0.5 hover:-translate-x-0.5'
       }`}>
         {children}
       </div>
@@ -52,7 +52,7 @@ export default function FilterButtons({
     return (
       <div className="space-y-8">
         <section>
-          <h2 className="text-xl font-bold mb-4 text-gray-900">Format</h2>
+          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Format</h2>
           <div className="flex flex-wrap gap-4">
             {FORMAT_TAGS.map(format => (
               <FilterButton
@@ -75,7 +75,7 @@ export default function FilterButtons({
         <section>
           <button 
             onClick={() => setIsThemesOpen(!isThemesOpen)}
-            className="w-full flex items-center justify-between text-xl font-bold mb-4 text-gray-900 hover:opacity-75"
+            className="w-full flex items-center justify-between text-xl font-bold mb-4 text-gray-900 dark:text-white hover:opacity-75"
           >
             <span>Themes</span>
             <svg
@@ -127,7 +127,7 @@ export default function FilterButtons({
         <section>
           <button 
             onClick={() => setIsTracksOpen(!isTracksOpen)}
-            className="w-full flex items-center justify-between text-xl font-bold mb-4 text-gray-900 hover:opacity-75"
+            className="w-full flex items-center justify-between text-xl font-bold mb-4 text-gray-900 dark:text-white hover:opacity-75"
           >
             <span>Tracks</span>
             <svg
@@ -176,4 +176,4 @@ export default function FilterButtons({
       )}
     </div>
   );
-} 
+}

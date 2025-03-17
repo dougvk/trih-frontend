@@ -314,17 +314,17 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8]">
+    <div className="min-h-screen bg-[#FFFDF8] dark:bg-gray-900 transition-colors duration-200">
       <Header />
       
       <main>
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Chat with Podcasts</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Chat with Podcasts</h2>
             {messages.length > 0 && (
               <button
                 onClick={clearChat}
-                className="text-sm text-red-600 hover:text-red-800 font-medium"
+                className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
               >
                 Clear Chat
               </button>
@@ -335,8 +335,8 @@ export default function ChatPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">OpenAI API Key</h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">OpenAI API Key</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                   {isApiKeySet 
                     ? "API key is set (stored in session storage only)" 
                     : "You need to provide your OpenAI API key to use this feature"}
@@ -346,7 +346,7 @@ export default function ChatPage() {
                 {isApiKeySet ? (
                   <button
                     onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                    className="text-sm text-blue-600 hover:text-blue-800 mr-4"
+                    className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
                   >
                     {showApiKeyInput ? 'Hide' : 'Change Key'}
                   </button>
@@ -354,14 +354,14 @@ export default function ChatPage() {
                 {isApiKeySet ? (
                   <button
                     onClick={clearApiKey}
-                    className="text-sm text-red-600 hover:text-red-800"
+                    className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                   >
                     Clear Key
                   </button>
                 ) : (
                   <button
                     onClick={() => setShowApiKeyInput(true)}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     Set API Key
                   </button>
@@ -372,14 +372,14 @@ export default function ChatPage() {
             {showApiKeyInput && (
               <div className="mt-2">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-[#0f172a] rounded-xl translate-y-2 translate-x-2"></div>
-                  <div className="relative z-10 flex rounded-xl overflow-hidden border-3 border-[#0f172a]">
+                  <div className="absolute inset-0 bg-[#0f172a] dark:bg-gray-700 rounded-xl translate-y-2 translate-x-2"></div>
+                  <div className="relative z-10 flex rounded-xl overflow-hidden border-3 border-[#0f172a] dark:border-gray-700">
                     <input
                       type="password"
                       placeholder="Enter your OpenAI API key"
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      className="flex-grow px-4 py-2 bg-white text-gray-900 focus:outline-none"
+                      className="flex-grow px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none"
                     />
                     <button
                       onClick={saveApiKey}
@@ -390,7 +390,7 @@ export default function ChatPage() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-gray-600">
+                <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
                   Your API key is stored in session storage and will be cleared when you close your browser.
                 </p>
               </div>
@@ -398,20 +398,20 @@ export default function ChatPage() {
           </div>
           
           {error && (
-            <div className="bg-red-100 border-3 border-red-500 rounded-xl p-4 mb-8">
-              <p className="text-red-700">{error}</p>
+            <div className="bg-red-100 dark:bg-red-900 border-3 border-red-500 rounded-xl p-4 mb-8">
+              <p className="text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
           
           {/* Chat Messages */}
           <div className="relative mb-6">
-            <div className="absolute inset-0 bg-[#0f172a] rounded-xl translate-y-2 translate-x-2"></div>
+            <div className="absolute inset-0 bg-[#0f172a] dark:bg-gray-700 rounded-xl translate-y-2 translate-x-2"></div>
             <div 
               ref={chatContainerRef}
-              className="relative z-10 bg-white border-3 border-[#0f172a] rounded-xl p-4 min-h-[400px] max-h-[600px] overflow-y-auto"
+              className="relative z-10 bg-white dark:bg-gray-800 border-3 border-[#0f172a] dark:border-gray-700 rounded-xl p-4 min-h-[400px] max-h-[600px] overflow-y-auto"
             >
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                <div className="h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                   <p className="text-center mb-2">Start chatting about the podcasts!</p>
                   <p className="text-center text-sm">Ask questions about episodes, topics, or historical figures.</p>
                 </div>
@@ -424,38 +424,38 @@ export default function ChatPage() {
                     >
                       <div className={`relative p-4 rounded-xl ${
                         message.role === 'user' 
-                          ? 'bg-blue-100 border-3 border-blue-500' 
-                          : 'bg-gray-100 border-3 border-[#0f172a]'
+                          ? 'bg-blue-100 dark:bg-blue-900 border-3 border-blue-500 dark:border-blue-700' 
+                          : 'bg-gray-100 dark:bg-gray-700 border-3 border-[#0f172a] dark:border-gray-600'
                       }`}>
-                        <div className="prose max-w-none text-gray-900">
+                        <div className="prose max-w-none text-gray-900 dark:text-gray-100">
                           <ReactMarkdown
                             components={{
-                              p: ({...props}) => <p className="mb-4 text-gray-900" {...props} />,
-                              h1: ({...props}) => <h1 className="text-xl font-bold mt-6 mb-4 text-gray-900" {...props} />,
-                              h2: ({...props}) => <h2 className="text-lg font-bold mt-5 mb-3 text-gray-900" {...props} />,
-                              h3: ({...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-gray-900" {...props} />,
-                              ul: ({...props}) => <ul className="list-disc pl-5 mb-4 text-gray-900" {...props} />,
-                              ol: ({...props}) => <ol className="list-decimal pl-5 mb-4 text-gray-900" {...props} />,
-                              li: ({...props}) => <li className="mb-1 text-gray-900" {...props} />,
-                              blockquote: ({...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-900" {...props} />,
+                              p: ({...props}) => <p className="mb-4 text-gray-900 dark:text-gray-100" {...props} />,
+                              h1: ({...props}) => <h1 className="text-xl font-bold mt-6 mb-4 text-gray-900 dark:text-gray-100" {...props} />,
+                              h2: ({...props}) => <h2 className="text-lg font-bold mt-5 mb-3 text-gray-900 dark:text-gray-100" {...props} />,
+                              h3: ({...props}) => <h3 className="text-base font-bold mt-4 mb-2 text-gray-900 dark:text-gray-100" {...props} />,
+                              ul: ({...props}) => <ul className="list-disc pl-5 mb-4 text-gray-900 dark:text-gray-100" {...props} />,
+                              ol: ({...props}) => <ol className="list-decimal pl-5 mb-4 text-gray-900 dark:text-gray-100" {...props} />,
+                              li: ({...props}) => <li className="mb-1 text-gray-900 dark:text-gray-100" {...props} />,
+                              blockquote: ({...props}) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4 text-gray-900 dark:text-gray-100" {...props} />,
                             }}
                           >
                             {message.content}
                           </ReactMarkdown>
                         </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
                   ))}
                   {isLoading && (
                     <div className="mr-auto">
-                      <div className="relative p-4 rounded-xl bg-gray-100 border-3 border-[#0f172a]">
+                      <div className="relative p-4 rounded-xl bg-gray-100 dark:bg-gray-700 border-3 border-[#0f172a] dark:border-gray-600">
                         <div className="flex space-x-2">
-                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '100ms' }}></div>
-                          <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '200ms' }}></div>
+                          <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300 animate-bounce" style={{ animationDelay: '100ms' }}></div>
+                          <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300 animate-bounce" style={{ animationDelay: '200ms' }}></div>
                         </div>
                       </div>
                     </div>
@@ -468,12 +468,12 @@ export default function ChatPage() {
           
           {/* Message Input */}
           <div className="relative mb-8">
-            <div className="absolute inset-0 bg-[#0f172a] rounded-xl translate-y-2 translate-x-2"></div>
-            <div className="relative z-10 flex items-center border-3 border-[#0f172a] rounded-xl overflow-hidden">
+            <div className="absolute inset-0 bg-[#0f172a] dark:bg-gray-700 rounded-xl translate-y-2 translate-x-2"></div>
+            <div className="relative z-10 flex items-center border-3 border-[#0f172a] dark:border-gray-700 rounded-xl overflow-hidden">
               <input
                 type="text"
                 placeholder="Type your message..."
-                className="flex-grow px-4 py-3 bg-white text-gray-900 focus:outline-none"
+                className="flex-grow px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
@@ -482,7 +482,7 @@ export default function ChatPage() {
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputMessage.trim() || !isApiKeySet}
-                className="px-6 py-3 bg-[#374151] text-white font-medium focus:outline-none disabled:opacity-50"
+                className="px-6 py-3 bg-[#374151] dark:bg-gray-600 text-white font-medium focus:outline-none disabled:opacity-50"
               >
                 {isLoading ? 'Sending...' : 'Send'}
               </button>
@@ -492,7 +492,7 @@ export default function ChatPage() {
           {/* Relevant Episodes Section */}
           {relevantEpisodes.length > 0 && (
             <div className="mt-12">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">Related Episodes</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Related Episodes</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {relevantEpisodes.map(episode => (
                   <EpisodeCard

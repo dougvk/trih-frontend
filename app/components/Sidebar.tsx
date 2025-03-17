@@ -29,7 +29,7 @@ export default function Sidebar({
       )}
       
       <div 
-        className={`fixed top-0 left-0 h-screen w-[300px] bg-[#fff4da] border-r-2 border-gray-900 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-screen w-[300px] bg-[#fff4da] dark:bg-gray-800 border-r-2 border-gray-900 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } z-50`}
       >
@@ -48,4 +48,4 @@ export default function Sidebar({
       </div>
     </>
   );
-} 
+}
