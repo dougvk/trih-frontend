@@ -219,8 +219,8 @@ export default function ChatPage() {
     setError('');
     
     try {
-      // Get conversation history for context
-      const conversationHistory = messages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+      // Removing the unused variable to fix the build error
+      // const conversationHistory = messages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
       
       // Step 1: Get relevant context from the vector search API
       const apiUrl = `https://trih-vector-service.dougsprivateapi.work/query?search=${encodeURIComponent(inputMessage)}&top_k=10`;
