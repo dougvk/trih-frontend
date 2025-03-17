@@ -18,6 +18,11 @@ export default function Header() {
                   Q&A
                 </Link>
               </li>
+              <li>
+                <Link href="/chat" className="text-lg font-medium text-gray-900 hover:text-[#ffc480] transition-colors">
+                  Chat
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>
