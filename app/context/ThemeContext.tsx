@@ -12,7 +12,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   // Initialize with false (light mode) for server-side rendering
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [mounted, setMounted] = useState(false);
+  // We don't need the mounted state as it's only used in the useEffect
+  // and not referenced elsewhere in the component
 
   // Handle initial theme setup after component mounts
   useEffect(() => {
@@ -36,8 +37,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       }
       localStorage.setItem('theme', prefersDark ? 'dark' : 'light');
     }
-    
-    setMounted(true);
   }, []);
 
   const toggleDarkMode = () => {
