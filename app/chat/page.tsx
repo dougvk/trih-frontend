@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import EpisodeCard from '../components/EpisodeCard';
 import EpisodeModal from '../components/EpisodeModal';
 import { allEpisodes, type Episode } from '../lib/db';
+import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 
 // Define types for the API response and chat messages
 interface SearchResult {
@@ -322,12 +323,40 @@ export default function ChatPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Chat with Podcasts</h2>
             {messages.length > 0 && (
-              <button
-                onClick={clearChat}
-                className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
-              >
-                Clear Chat
-              </button>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    // Format the entire conversation in markdown
+                    const formattedConversation = messages.map(msg => {
+                      const sender = msg.role === 'user' ? 'You' : 'AI Assistant';
+                      const time = new Date(msg.timestamp).toLocaleTimeString();
+                      return `## ${sender} (${time})\n\n${msg.content}\n\n`;
+                    }).join('---\n\n');
+                    
+                    navigator.clipboard.writeText(formattedConversation);
+                    
+                    // Visual feedback
+                    const button = document.activeElement;
+                    if (button instanceof HTMLElement) {
+                      const originalText = button.innerHTML;
+                      button.innerHTML = 'Copied!';
+                      setTimeout(() => {
+                        button.innerHTML = originalText;
+                      }, 1000);
+                    }
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center"
+                >
+                  <ClipboardDocumentIcon className="h-4 w-4 mr-1" />
+                  Copy All as MD
+                </button>
+                <button
+                  onClick={clearChat}
+                  className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                >
+                  Clear Chat
+                </button>
+              </div>
             )}
           </div>
           
@@ -427,6 +456,30 @@ export default function ChatPage() {
                           ? 'bg-blue-100 dark:bg-blue-900 border-3 border-blue-500 dark:border-blue-700' 
                           : 'bg-gray-100 dark:bg-gray-700 border-3 border-[#0f172a] dark:border-gray-600'
                       }`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {message.role === 'user' ? 'You' : 'AI Assistant'}
+                          </div>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(message.content);
+                              // Optional: Add a temporary visual feedback
+                              const button = document.activeElement;
+                              if (button instanceof HTMLElement) {
+                                const originalText = button.innerHTML;
+                                button.innerHTML = 'Copied!';
+                                setTimeout(() => {
+                                  button.innerHTML = originalText;
+                                }, 1000);
+                              }
+                            }}
+                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center"
+                            title="Copy as Markdown"
+                          >
+                            <ClipboardDocumentIcon className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Copy MD</span>
+                          </button>
+                        </div>
                         <div className="prose max-w-none text-gray-900 dark:text-gray-100">
                           <ReactMarkdown
                             components={{

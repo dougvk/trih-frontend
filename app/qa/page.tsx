@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import EpisodeCard from '../components/EpisodeCard';
 import EpisodeModal from '../components/EpisodeModal';
 import { allEpisodes, type Episode } from '../lib/db';
+import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 
 // Define types for the API response
 interface SearchResult {
@@ -348,7 +349,28 @@ export default function QAPage() {
               <div className="relative mb-8">
                 <div className="absolute inset-0 bg-[#0f172a] dark:bg-gray-700 rounded-xl translate-y-2 translate-x-2"></div>
                 <div className="relative z-10 bg-white dark:bg-gray-800 border-3 border-[#0f172a] dark:border-gray-700 rounded-xl p-6">
-                  <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Answer</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Answer</h3>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(answer);
+                        // Optional: Add a temporary visual feedback
+                        const button = document.activeElement;
+                        if (button instanceof HTMLElement) {
+                          const originalText = button.innerHTML;
+                          button.innerHTML = 'Copied!';
+                          setTimeout(() => {
+                            button.innerHTML = originalText;
+                          }, 1000);
+                        }
+                      }}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center"
+                      title="Copy as Markdown"
+                    >
+                      <ClipboardDocumentIcon className="h-4 w-4 mr-1" />
+                      <span className="text-sm">Copy as Markdown</span>
+                    </button>
+                  </div>
                   <div className="prose max-w-none text-gray-900 dark:text-gray-100">
                     <ReactMarkdown
                       components={{
