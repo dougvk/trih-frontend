@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { FORMAT_TAGS, type FormatTag, type ThemeTag, type TrackTag } from '../lib/constants';
-import { allThemeTags, allTrackTags } from '../lib/db';
+import { type FormatTag, type ThemeTag, type TrackTag } from '../lib/constants';
+import { allFormatTags, allThemeTags, allTrackTags } from '../lib/db';
 
 interface FilterButtonsProps {
   selectedFormat: FormatTag | null;
@@ -54,7 +54,7 @@ export default function FilterButtons({
         <section>
           <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Format</h2>
           <div className="flex flex-wrap gap-4">
-            {FORMAT_TAGS.map(format => (
+            {allFormatTags.map(format => (
               <FilterButton
                 key={format}
                 onClick={() => onFormatChange(format)}

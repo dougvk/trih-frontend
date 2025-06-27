@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { allEpisodes, type Episode } from './lib/db';
+import { allEpisodesSorted, type Episode } from './lib/db';
 import { type FormatTag, type ThemeTag, type TrackTag } from './lib/constants';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
@@ -36,7 +36,7 @@ export default function Home() {
   }, []);
 
   // Filter episodes based on search and selected tags
-  const filteredEpisodes = allEpisodes.filter(episode => {
+  const filteredEpisodes = allEpisodesSorted.filter(episode => {
     // Search filter (case-insensitive)
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
@@ -48,14 +48,8 @@ export default function Home() {
     }
 
     // Format filter
-    if (selectedFormat) {
-      if (selectedFormat === 'Bonus Episodes') {
-        if (!episode.trackTags.includes('The RIHC Bonus Track')) return false;
-      } else if (selectedFormat === 'Series Episodes') {
-        if (!episode.formatTags.includes(selectedFormat) || episode.trackTags.includes('The RIHC Bonus Track')) return false;
-      } else if (!episode.formatTags.includes(selectedFormat)) {
-        return false;
-      }
+    if (selectedFormat && !episode.formatTags.includes(selectedFormat)) {
+      return false;
     }
 
     // Theme filter
@@ -134,7 +128,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEpisodes.map(episode => (
               <EpisodeCard
-                key={episode.id}
+                key={episode.guid}
                 episode={episode}
                 onClick={() => setSelectedEpisode(episode)}
               />

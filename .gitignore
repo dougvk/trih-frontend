@@ -27,6 +27,9 @@ documentation/
 *.pem
 *.db
 
+# episode data (contains private information)
+app/lib/episodes.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*

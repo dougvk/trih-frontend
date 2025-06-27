@@ -72,82 +72,81 @@ export default function QAPage() {
     podcastTitles.forEach(apiTitle => {
       console.log("Processing API title:", apiTitle);
       
-      // Clean up the API title (remove numbers, "copy", etc.)
-      const cleanedApiTitle = apiTitle
+      // Clean up the API title more aggressively
+      let cleanedApiTitle = apiTitle
+        .replace(/\.txt$/, '') // Remove .txt extension
         .replace(/^\d+_/, '') // Remove leading numbers and underscore
         .replace(/ copy$/, '') // Remove trailing "copy"
         .trim();
       
       console.log("Cleaned API title:", cleanedApiTitle);
       
-      // Check if this is a "Part X" title and extract the main title and part number
-      const partMatch = cleanedApiTitle.match(/(.*?)(Part\s+\d+)?$/i);
-      const mainTitlePart = partMatch ? partMatch[1].trim() : cleanedApiTitle;
-      const partNumber = partMatch && partMatch[2] ? partMatch[2].trim() : null;
+      // Normalize punctuation for better matching
+      const normalizeTitle = (title: string) => {
+        return title
+          .toLowerCase()
+          .replace(/[,:;!?'"]/g, '') // Remove punctuation
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim();
+      };
       
-      console.log("Main title part:", mainTitlePart);
-      console.log("Part number:", partNumber);
+      const normalizedApiTitle = normalizeTitle(cleanedApiTitle);
       
       // Find the best matching episode
       let bestMatch: Episode | undefined;
       let highestScore = 0;
       
       allEpisodes.forEach(episode => {
+        const normalizedEpisodeTitle = normalizeTitle(episode.title);
+        
         // Calculate a similarity score
         let score = 0;
         
-        // Check for exact title match (case insensitive)
-        if (episode.title.toLowerCase() === cleanedApiTitle.toLowerCase()) {
-          score += 50;
+        // Check for exact normalized title match
+        if (normalizedEpisodeTitle === normalizedApiTitle) {
+          score += 100;
         }
         
-        // Check if episode title contains the main title part
-        if (episode.title.toLowerCase().includes(mainTitlePart.toLowerCase())) {
-          score += 20;
+        // Extract significant words (longer than 3 characters)
+        const getSignificantWords = (text: string) => {
+          return text.split(/\s+/).filter(word => word.length > 3);
+        };
+        
+        const apiWords = getSignificantWords(normalizedApiTitle);
+        const episodeWords = getSignificantWords(normalizedEpisodeTitle);
+        
+        // Calculate word overlap score
+        const commonWords = apiWords.filter(word => episodeWords.includes(word));
+        const wordOverlapRatio = commonWords.length / Math.max(apiWords.length, episodeWords.length);
+        score += wordOverlapRatio * 50;
+        
+        // Check for specific pattern matches
+        // Handle "Part X" pattern
+        const partMatch = /part\s*(\d+)/i.exec(cleanedApiTitle);
+        if (partMatch) {
+          const partNum = partMatch[1];
+          if (episode.title.toLowerCase().includes(`part ${partNum}`) || 
+              episode.title.toLowerCase().includes(`part${partNum}`)) {
+            score += 20;
+          }
         }
         
-        // Check if the main title part contains the episode title
-        if (mainTitlePart.toLowerCase().includes(episode.title.toLowerCase())) {
-          score += 10;
+        // Check for title containment (bidirectional)
+        if (normalizedEpisodeTitle.includes(normalizedApiTitle) || 
+            normalizedApiTitle.includes(normalizedEpisodeTitle)) {
+          score += 30;
         }
         
-        // Check for part number match if both have part numbers
-        if (partNumber && episode.title.toLowerCase().includes(partNumber.toLowerCase())) {
-          score += 15;
-        }
-        
-        // Check for word-by-word matches (for longer words only)
-        const apiWords = mainTitlePart.toLowerCase().split(/\s+/);
-        const episodeWords = episode.title.toLowerCase().split(/\s+/);
-        
-        apiWords.forEach(word => {
-          if (word.length > 3 && episodeWords.includes(word)) {
-            score += 3;
+        // Bonus for matching key topic words
+        const keyTopics = ['boudicca', 'boudica', 'roman', 'britain', 'conquest', 'celtic', 'language'];
+        keyTopics.forEach(topic => {
+          if (normalizedApiTitle.includes(topic) && normalizedEpisodeTitle.includes(topic)) {
+            score += 10;
           }
         });
         
-        // Special case for Charlemagne episodes
-        if (mainTitlePart.toLowerCase().includes('charlemagne') && 
-            episode.title.toLowerCase().includes('charlemagne')) {
-          score += 15;
-          
-          // Check for specific subtitles
-          const charlemagneSubtitles = [
-            "Emperor of the West",
-            "Pagan Hunter",
-            "Return of the Kings"
-          ];
-          
-          charlemagneSubtitles.forEach(subtitle => {
-            if (mainTitlePart.toLowerCase().includes(subtitle.toLowerCase()) && 
-                episode.title.toLowerCase().includes(subtitle.toLowerCase())) {
-              score += 20;
-            }
-          });
-        }
-        
         // Log high-scoring potential matches for debugging
-        if (score > 10) {
+        if (score > 15) {
           console.log(`Potential match: "${episode.title}" with score ${score}`);
         }
         
@@ -158,13 +157,13 @@ export default function QAPage() {
       });
       
       // Use a lower threshold to ensure we find matches
-      if (bestMatch && highestScore > 10) {
+      if (bestMatch && highestScore > 15) {
         console.log("Found match:", bestMatch.title, "with score:", highestScore);
-        if (!matchedEpisodes.some(e => e.id === bestMatch!.id)) {
+        if (!matchedEpisodes.some(e => e.guid === bestMatch!.guid)) {
           matchedEpisodes.push(bestMatch);
         }
       } else {
-        console.log("No match found with sufficient score");
+        console.log("No match found with sufficient score for:", cleanedApiTitle);
       }
     });
     
@@ -199,9 +198,14 @@ export default function QAPage() {
       
       const apiData: ApiResponse = await apiResponse.json();
       
-      // Step 2: Find matching episodes
+      // Step 2: Find matching episodes and sort by date (newest first)
       const matchedEpisodes = findMatchingEpisodes(apiData.results);
-      setRelevantEpisodes(matchedEpisodes);
+      const sortedEpisodes = [...matchedEpisodes].sort((a, b) => {
+        const dateA = new Date(a.publishedDate);
+        const dateB = new Date(b.publishedDate);
+        return dateB.getTime() - dateA.getTime();
+      });
+      setRelevantEpisodes(sortedEpisodes);
       
       // Step 3: Combine all relevant text chunks
       const contextText = apiData.results
@@ -396,7 +400,7 @@ export default function QAPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {relevantEpisodes.map(episode => (
                       <EpisodeCard
-                        key={episode.id}
+                        key={episode.guid}
                         episode={episode}
                         onClick={() => setSelectedEpisode(episode)}
                       />
